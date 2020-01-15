@@ -20,11 +20,11 @@ node('node01'){
     }
         
     stage('Building Docker Image'){
-        dir('<path_to_code) {
+        dir('<path_to_code>') {
     // some block
         sh 'pwd'
         sh 'cd <path_to_code>'
-        def dockerBuild = '(docker build --no-cache -t rnr/tomcat8:${BUILD_NUMBER} . 2>/dev/null | awk '/Successfully built/{print $NF}')'
+        def dockerBuild = '(docker build --no-cache -t <image>:${BUILD_NUMBER} . 2>/dev/null | awk '/Successfully built/{print $NF}')'
         sh '${dockerBuild}'
     }
     stage('Upload Image to DockerHub'){
@@ -49,7 +49,7 @@ node('node01'){
   
     stage('Deploy-Dev'){
     sshagent(['my-app-dev']) {
-      input 'Deploy  to Dev?'
+      input 'Deploy  to Dev?'  #need to type yes to go ahead
       def sshCmd = 'ssh -o StrictHostKeyChecking=no ec2-user@<ipaddress>'
       def dockerRun = 'docker run -d -p 8080:8080 --name my-app ltarley/my-app:0.0.1'
       sh "${sshCmd} ${dockerRun}"
