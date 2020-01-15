@@ -1,0 +1,60 @@
+node('node01'){
+    env.JAVA_HOME="/usr/java/latest"
+    env.M2_HOME="<Maven_Path>/Maven_3.0.5"
+	env.PATH="${env.JAVA_HOME}/bin:${env.M2_HOME}/bin:${env.PATH}"
+    
+    stage('SCM Clone'){
+        sh 'rm -rf ${WORKSPACE}/*'
+        sh 'git clone https://github.com/spring-projects/spring-petclinic.git'
+        sh 'git clone <my_github_repo_where_dockerfile_and_other_files_present_to_build_docker_image.git'
+    }
+    stage('Build'){
+        sh 'cp ${WORKSPACE}/Dummy/build.sh ${WORKSPACE}/spring-projects/spring-petclinic'
+        sh 'cp ${WORKSPACE}/Dummy/dockerfile ${WORKSPACE}/spring-projects/spring-petclinic'
+    }    
+    dir('<path_to_code>') {
+    // Executing maven goals
+    sh 'java -version'
+    sh 'mvn -version'
+    sh ./mvn package
+    }
+        
+    stage('Building Docker Image'){
+        dir('<path_to_code) {
+    // some block
+        sh 'pwd'
+        sh 'cd <path_to_code>'
+        def dockerBuild = '(docker build --no-cache -t rnr/tomcat8:${BUILD_NUMBER} . 2>/dev/null | awk '/Successfully built/{print $NF}')'
+        sh '${dockerBuild}'
+    }
+    stage('Upload Image to DockerHub'){
+    withCredentials([string(credentialsId: 'docker-hub', variable: 'password')]) {
+      sh "docker login -u ltarley -p ${password}"
+         
+        } 
+
+   sh 'docker push ltarley/my-app:0.0.1'
+  }
+  stage('Remove Old Containers'){
+    sshagent(['my-app-dev']) {
+      try{
+        def sshCmd = 'ssh -o StrictHostKeyChecking=no ec2-user@172.31.18.198'
+        def dockerRM = 'docker rm -f my-app'
+        sh "${sshCmd} ${dockerRM}"
+      }catch(error){
+
+      }
+    }
+  }
+  
+    stage('Deploy-Dev'){
+    sshagent(['my-app-dev']) {
+      input 'Deploy  to Dev?'
+      def sshCmd = 'ssh -o StrictHostKeyChecking=no ec2-user@<ipaddress>'
+      def dockerRun = 'docker run -d -p 8080:8080 --name my-app ltarley/my-app:0.0.1'
+      sh "${sshCmd} ${dockerRun}"
+    }
+  }
+}
+
+   
