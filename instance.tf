@@ -5,7 +5,7 @@ resource "aws_instance" "node01" {
    key_name = "mykey"
    subnet_id = "${aws_subnet.subnet1.id}"
    vpc_security_group_ids = ["${aws_security_group.allow_https_only.id}"]
-   user_data = "${file("starter.sh")}"
+   user_data = "${file("script.sh")}"
 
   tags {
     Name = "node01"
@@ -19,6 +19,7 @@ resource "aws_instance" "node02" {
    key_name = "mykey"
    subnet_id = "${aws_subnet.subnet1.id}"
    vpc_security_group_ids = ["${aws_security_group.allow_https_only.id}"]
+   user_data = "${file("script.sh")}"
 
   tags {
     Name = "node02"
